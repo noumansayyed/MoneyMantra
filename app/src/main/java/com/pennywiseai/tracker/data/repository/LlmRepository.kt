@@ -279,7 +279,7 @@ class LlmRepository @Inject constructor(
         val activeSubs = chatContext.activeSubscriptions
         
         return """
-        Hi! I'm PennyWise AI, your financial assistant.
+        Hi! I'm MoneyMantra AI, your financial assistant.
         
         I have access to:
         • Your last 2 weeks of transactions ($recentCount recent ones)

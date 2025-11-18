@@ -208,58 +208,47 @@ class ChatViewModel @Inject constructor(
             _currentResponse.value = ""
 
             try {
-                // small delay to simulate natural response
-                delay(80)
+                val disabledMessage = "Chat is currently under development. This feature will be available soon. Thank you for your patience!"
 
-                val disabledMessage =
-                    "AI chat functionality is currently disabled. This feature is under maintenance and will be available soon."
-
-                // ----------------------------------------------------------------------------------
-                // IMPORTANT PART:
-                //   We STILL call sendMessageStream() to save the user's message (your requirement)
-                //   BUT we IMMEDIATELY cancel the inference job so the model never runs.
-                // ----------------------------------------------------------------------------------
-
+                // Save user message to database
                 val streamJob = launch {
                     llmRepository.sendMessageStream(message)
                         .catch { error ->
-                            Log.d("ChatViewModel", "Caught error (expected): ${error.message}")
+                            Log.d("ChatViewModel", "Message saved, AI disabled: ${error.message}")
                         }
-                        .collect { partialResponse ->
-                            // ignore actual model output
+                        .collect {
+                            // Ignore AI responses
                         }
                 }
 
-                // wait only enough time for db to save user message
-                delay(120)
+                // Wait just enough for message to be saved (50ms)
+                delay(50)
 
-                // cancel the heavy LLM inference BEFORE it starts generating
+                // Cancel AI inference immediately
                 streamJob.cancel()
 
-                // show disabled message to user
+                // Show disabled message instantly
                 _currentResponse.value = disabledMessage
 
-                _currentResponse.value = disabledMessage
+                // Keep message visible for 1 second
+                delay(1000)
+
+                // Clear and reset
+                _currentResponse.value = ""
                 _uiState.value = _uiState.value.copy(isLoading = false)
 
-
-                Log.d("ChatViewModel", "Custom disabled message shown instantly (LLM skipped)")
+                Log.d("ChatViewModel", "Custom message shown (AI disabled)")
             } catch (e: Exception) {
                 Log.e("ChatViewModel", "Exception in sendMessage", e)
 
-                _currentResponse.value =
-                    "AI chat functionality is currently disabled. This feature is under maintenance and will be available soon."
-
-                delay(150)
-
+                // Show disabled message even on error
+                _currentResponse.value = "Chat is currently under development. This feature will be available soon."
+                delay(1000)
                 _currentResponse.value = ""
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
     }
-
-
-
 
 
 
